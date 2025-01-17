@@ -15,7 +15,7 @@ describe('Authentication System', () => {
     await app.init();
   });
 
-  it('handles a signup request', () => {
+  it('handles a signup request', async () => {
     const email = 'asdf123@asdf.com';
     return request(app.getHttpServer()) // Http 서버에 요청을 수행하도록 함
       .post('/auth/signup') // 요청을 사용자 지정하는 여러 가지 메서드 호출을 연결

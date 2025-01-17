@@ -6,8 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
-import { User } from './users/users.entity';
-import { Report } from './reports/reports.entity';
+import * as ormConfig from '../ormconfig';
 const cookieSession = require('cookie-session');
 
 @Module({
@@ -16,23 +15,7 @@ const cookieSession = require('cookie-session');
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          type: 'sqlite',
-          database: config.get<string>('DB_NAME'),
-          synchronize: true,
-          entities: [User, Report],
-        };
-      },
-    }),
-    // TypeOrmModule.forRoot({
-    //   type: 'sqlite',
-    //   database: 'db.sqlite', // 이 문자열을 바꾸면 DB가 바뀜뀜
-    //   entities: [User, Report],
-    //   synchronize: true,
-    // }),
+    TypeOrmModule.forRoot(ormConfig),
     UsersModule,
     ReportsModule,
   ],
@@ -48,12 +31,13 @@ const cookieSession = require('cookie-session');
   ],
 })
 export class AppModule {
+  constructor(private configService: ConfigService) {}
   // 애플리케이션이 들어오는 트래픽을 수신할 때 자동으로 호출!
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(
         cookieSession({
-          keys: ['asdfasdf'],
+          keys: [this.configService.get('COOKIE_KEY')],
         }),
       )
       .forRoutes('*');
