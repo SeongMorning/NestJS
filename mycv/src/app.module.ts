@@ -6,7 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { ReportsModule } from './reports/reports.module';
-import * as ormConfig from '../ormconfig';
+import AppDataSource from './data-source';
 const cookieSession = require('cookie-session');
 
 @Module({
@@ -15,7 +15,21 @@ const cookieSession = require('cookie-session');
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`,
     }),
-    TypeOrmModule.forRoot(ormConfig),
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => {
+        // DataSource 초기화
+        if (!AppDataSource.isInitialized) {
+          await AppDataSource.initialize();
+        }
+        // TypeOrmModule에 DataSource 설정 반환
+        return {
+          type: AppDataSource.options.type,
+          database: AppDataSource.options.database as any,
+          entities: AppDataSource.options.entities,
+          synchronize: AppDataSource.options.synchronize,
+        };
+      },
+    }),
     UsersModule,
     ReportsModule,
   ],
